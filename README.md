@@ -1,2 +1,2 @@
 # WTF-SBT
-SBT contracts used by WTF Academy for on-chain skill credentials
+Soulbound Token (SBT) contracts created by WTF Academy for on-chain skill credentials
