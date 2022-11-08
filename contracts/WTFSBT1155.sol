@@ -17,9 +17,13 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
     event MinterAdded(address indexed newMinter);
     /// @notice This event is emitted when old minter address is removed
     event MinterRemoved(address indexed oldMinter);
+    /// @notice This event is emitted when treasury address changes
+    event TreasuryTransferred(address indexed user, address indexed newTreasury);
     /// @notice This event is to easily track which creator registered
     ///      which Soul tokens without having to store the mapping on-chain.
     event CreatedSoul(address indexed creator, uint256 tokenId, string soulName);
+    /// @notice This event is emitted when user donates during minting
+    event Donate(address indexed donator, uint256 amount);
 
 
     /* ============ Modifiers ============ */
@@ -47,6 +51,8 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
     string public name;
     /// @notice collection symbol
     string public symbol;
+    /// @notice treasury address
+    address public treasury;
     /// @notice SBT base URI
     string private _baseURI; 
     /// @notice list of minter address
@@ -66,6 +72,10 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
         symbol = symbol_;
     }
     
+    receive() external payable {
+        payable(treasury).transfer(msg.value);
+        emit Donate(msg.sender, msg.value);
+    }
     /// @notice Register new SBT token type for people to claim.
     /// @dev This just allowlists the tokens that are able to claim this particular token type, but it does not necessarily mint the token until later.
     /// @param soulName_: name for the SBT
@@ -192,7 +202,16 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
 
     /* ============ Minter Related Functions ============ */
     /// @notice Mint SBT with soulID to target adddress. This function can only be called by minter.
-    function mint(address to, uint256 soulId) external onlyMinter whenNotPaused{
+    function mint(address to, uint256 soulId) external payable onlyMinter whenNotPaused{
+        // check: the SBT with soulId is created
+        require(isCreated(soulId), "SoulId is not created yet");
+        // check: mint has started
+        uint256 startDateTimestamp = soulIdToSoulContainer[soulId].startDateTimestamp;
+        require(block.timestamp >= startDateTimestamp, "mint has not started");
+        // check: mint has not ended
+        uint256 endDateTimestamp = soulIdToSoulContainer[soulId].endDateTimestamp;
+        require(endDateTimestamp == 0 || block.timestamp < endDateTimestamp, "mint has ended");
+        
         _mint(to, soulId, 1, "");
     }
 
@@ -214,5 +233,11 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
         require(_minters[minter_], "Minter does not exist");
         _minters[minter_] = false;
         emit MinterRemoved(minter_);
+    }
+
+    /// @notice change treasury address.
+    function transferTreasury(address treasury_) external onlyOwner whenNotPaused{
+        treasury = treasury_;
+        emit TreasuryTransferred(msg.sender, treasury);
     }
 }

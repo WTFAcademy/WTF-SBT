@@ -20,7 +20,7 @@ contract WTFSBT1155Minter is Ownable{
     /* ============ Constructor ============ */
 
     /// @notice initialize WTFSBT1155 addresss and signer address
-    constructor(address sbtAddr_, address signer_){
+    constructor(address payable sbtAddr_, address signer_){
         wtfsbt = WTFSBT1155(sbtAddr_);
         signer = signer_;
     }
@@ -51,25 +51,18 @@ contract WTFSBT1155Minter is Ownable{
      * @param soulId: ERC1155 token id
      */
     function mint(address account, uint256 soulId, bytes memory signature)
-    external
+    external payable
     {
-        // check: the SBT with soulId is created
-        require(wtfsbt.isCreated(soulId), "SoulId is not created yet");
         // check: the account has not minted the SBT with soulId yet
         require(!mintedAddress[soulId][account], "Already minted!");
-        // check: mint has started
-        require(block.timestamp >= wtfsbt.getSoulStartDateTimestamp(soulId), "mint has not started");
-        // check: mint has not ended
-        uint256 endDateTimestamp = wtfsbt.getSoulEndDateTimestamp(soulId);
-        require(endDateTimestamp == 0 || block.timestamp < endDateTimestamp, "mint has ended");
-
+        
         // ECDSA verify
         bytes32 msgHash = getMessageHash(account, soulId);
         bytes32 ethSignedMessageHash = ECDSA.toEthSignedMessageHash(msgHash); 
         require(verify(ethSignedMessageHash, signature), "Invalid signature");
 
         // mint SBT with soulId to account
-        wtfsbt.mint(account, soulId);
+        wtfsbt.mint{ value: msg.value }(account, soulId);
         // record account has minted SBT with soulId
         mintedAddress[soulId][account] = true;
         // emit SBT Minted event
