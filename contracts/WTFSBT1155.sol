@@ -66,16 +66,22 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
 
 
     /* ============ Functions ============ */
-    constructor(string memory name_, string memory symbol_, string memory baseURI_) ERC1155(""){
+    constructor(string memory name_, string memory symbol_, string memory baseURI_, address treasury_) ERC1155(""){
         _baseURI = baseURI_;
         name = name_;
         symbol = symbol_;
+        treasury = treasury_;
     }
     
-    receive() external payable {
+    function donate() public payable {
         payable(treasury).transfer(msg.value);
         emit Donate(msg.sender, msg.value);
     }
+
+    receive() external payable {
+        donate();
+    }
+
     /// @notice Register new SBT token type for people to claim.
     /// @dev This just allowlists the tokens that are able to claim this particular token type, but it does not necessarily mint the token until later.
     /// @param soulName_: name for the SBT
@@ -202,6 +208,8 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
 
     /* ============ Minter Related Functions ============ */
     /// @notice Mint SBT with soulID to target adddress. This function can only be called by minter.
+    /* ============ Minter Related Functions ============ */
+    /// @notice Mint SBT with soulID to target adddress. This function can only be called by minter.
     function mint(address to, uint256 soulId) external payable onlyMinter whenNotPaused{
         // check: the SBT with soulId is created
         require(isCreated(soulId), "SoulId is not created yet");
@@ -211,7 +219,11 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
         // check: mint has not ended
         uint256 endDateTimestamp = soulIdToSoulContainer[soulId].endDateTimestamp;
         require(endDateTimestamp == 0 || block.timestamp < endDateTimestamp, "mint has ended");
-        
+        // donate if msg.value > 0
+        if(msg.value > 0){
+            donate();
+        }
+        // mint
         _mint(to, soulId, 1, "");
     }
 

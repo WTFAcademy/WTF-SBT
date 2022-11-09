@@ -18,7 +18,6 @@ contract WTFSBT1155Minter is Ownable{
     mapping(uint256 => mapping(address => bool)) public mintedAddress; // tracks minted address for each soul ID, so each address only mint once
 
     /* ============ Constructor ============ */
-
     /// @notice initialize WTFSBT1155 addresss and signer address
     constructor(address payable sbtAddr_, address signer_){
         wtfsbt = WTFSBT1155(sbtAddr_);
