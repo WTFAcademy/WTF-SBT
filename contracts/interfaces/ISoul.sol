@@ -35,7 +35,7 @@ interface ISoul {
     
     /// @notice Returns the locking status of an Soulbound Token
     /// @param sbtId The identifier for an SBT.
-    function isSoulbound(uint256 sbtId) external view returns (bool);
+    function locked(uint256 sbtId) external view returns (bool);
 
     /// @notice Returns the Uniform Resource Identifier (URI) for id SBT.
     /// @dev This is compatible to ERC721 tokenURI function and ERC721 URI function.
