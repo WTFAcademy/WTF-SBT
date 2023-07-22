@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.4;
 
 import "forge-std/Test.sol";
 import "../contracts/WTFSBT1155.sol";
@@ -14,7 +14,7 @@ contract WTFSBT1155Test is Test {
 
     function setUp() public {
         vm.startPrank(owner);
-        sbt = new WTFSBT1155("Test SBT", "TestSBT", "https://api.wtf.academy/token", msg.sender);
+        sbt = new WTFSBT1155("Test SBT", "TestSBT", "https://api.wtf.academy/token", owner);
         sbt.createSoul("test01", "test 01", 0, 0, 0);
         sbt.createSoul("test02", "test 02", 10, block.timestamp, block.timestamp+100);
         sbt.addMinter(MINTER_ADDRESS);
@@ -40,6 +40,14 @@ contract WTFSBT1155Test is Test {
         vm.prank(MINTER_ADDRESS);
         sbt.mint(alice, 0);
         assertEq(sbt.balanceOf(alice, 0), 1);
+    }
+
+    function testPaidMint() public payable {
+        vm.deal(MINTER_ADDRESS, 10);
+        vm.prank(MINTER_ADDRESS);
+        sbt.mint{value: 10}(bob, 1);
+        assertEq(sbt.balanceOf(bob, 1), 1);
+        assertEq(owner.balance, 10);
     }
 
     function testSoulNotCreated() public {
