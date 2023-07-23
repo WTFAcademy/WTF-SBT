@@ -56,7 +56,7 @@ contract WTFSBT1155MinterTest is Test {
     function testMinterMint() public {
         uint256 soulID_ = 0;
         // ECDSA verify
-        bytes32 msgHash = keccak256(abi.encodePacked(alice, soulID_)).toEthSignedMessageHash();
+        bytes32 msgHash = keccak256(abi.encodePacked(alice, soulID_, block.chainid)).toEthSignedMessageHash();
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, msgHash);
         bytes memory signature = abi.encodePacked(r, s, v);
 

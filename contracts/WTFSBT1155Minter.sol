@@ -30,8 +30,8 @@ contract WTFSBT1155Minter is Ownable{
      * @param account: mint address
      * @param soulId: ERC1155 token id
      */
-    function getMessageHash(address account, uint256 soulId) public pure returns(bytes32){
-        return keccak256(abi.encodePacked(account, soulId));
+    function getMessageHash(address account, uint256 soulId, uint256 chainID) public pure returns(bytes32){
+        return keccak256(abi.encodePacked(account, soulId, chainID));
     }
 
     /**
@@ -56,7 +56,7 @@ contract WTFSBT1155Minter is Ownable{
         require(!mintedAddress[soulId][account], "Already minted!");
         
         // ECDSA verify
-        bytes32 msgHash = getMessageHash(account, soulId);
+        bytes32 msgHash = getMessageHash(account, soulId, block.chainid);
         bytes32 ethSignedMessageHash = ECDSA.toEthSignedMessageHash(msgHash); 
         require(verify(ethSignedMessageHash, signature), "Invalid signature");
 
