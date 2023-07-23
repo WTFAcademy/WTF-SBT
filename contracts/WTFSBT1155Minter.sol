@@ -73,7 +73,7 @@ contract WTFSBT1155Minter is Ownable{
      * @param newSigner: address of new signer
      */
      function setSigner(address newSigner) external onlyOwner{
-         emit SignerChanged(signer, newSigner);
          signer = newSigner;
+        emit SignerChanged(signer, newSigner);
      }
 }
