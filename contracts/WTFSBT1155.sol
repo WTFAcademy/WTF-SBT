@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "./interfaces/ISoul.sol";
-import "./interfaces/IERC5192.sol";
 
 contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
     /* ============ Libraries ============ */
@@ -255,17 +254,5 @@ contract WTFSBT1155 is Ownable, Pausable, ISoul, ERC1155Supply{
     function transferTreasury(address treasury_) external onlyOwner whenNotPaused{
         treasury = treasury_;
         emit TreasuryTransferred(msg.sender, treasury);
-    }
-    
-    // supports ERC5192 Minimal Soulbound NFTs
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override
-        returns (bool)
-    {
-        return interfaceId == type(IERC5192).interfaceId
-        || super.supportsInterface(interfaceId);
-    }
+    }    
 }
