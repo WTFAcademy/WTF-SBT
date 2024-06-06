@@ -100,11 +100,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
 
     /// @notice Return a boolean indicating whether a SBT with soulId is already created.
     function isCreated(uint256 soulId) public view returns(bool){
-        if(soulId < latestUnusedTokenId){
-            return true;
-        }else{
-            return false;
-        }
+        return (soulId < latestUnusedTokenId);
     }
 
     /// @notice Recover function, transfer all SBTs from the old owner address to new address.
@@ -113,12 +109,13 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
     /// @param oldOwner The old owner address for SBT.
     /// @param newOwner The new owner address for SBT.
     function recover(address oldOwner, address newOwner) external onlyOwner whenNotPaused{
+        uint latestUnusedTokenId_ = latestUnusedTokenId;
         // balance of oldOwner
-        uint256[] memory addressBalances = new uint256[](latestUnusedTokenId);
+        uint256[] memory addressBalances = new uint256[](latestUnusedTokenId_);
         // Created soul ID list
-        uint256[] memory soulIdList = new uint256[](latestUnusedTokenId);
+        uint256[] memory soulIdList = new uint256[](latestUnusedTokenId_);
         // loop over all created soul ID
-        for (uint256 i = 0; i < latestUnusedTokenId; ++i) {
+        for (uint256 i = 0; i < latestUnusedTokenId_; ++i) {
             addressBalances[i] = balanceOf(oldOwner, i);
             soulIdList[i] = i;
         }
@@ -204,31 +201,21 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
         _mint(to, soulId, 1, "");
     }
 
-    /// @notice Free mint SBT with soulID to target adddress. This function can only be called by minter.
-    function freeMint(address to, uint256 soulId) external payable onlyMinter whenNotPaused{
-        // check: the SBT with soulId is created
-        require(isCreated(soulId), "SoulId is not created yet");
-        // check: mint has started
-        uint256 startDateTimestamp = soulIdToSoulContainer[soulId].startDateTimestamp;
-        require(block.timestamp >= startDateTimestamp, "mint has not started");
-        // check: mint has not ended
-        uint256 endDateTimestamp = soulIdToSoulContainer[soulId].endDateTimestamp;
-        require(endDateTimestamp == 0 || block.timestamp < endDateTimestamp, "mint has ended");
-        // donate if msg.value > 0
-        if(msg.value > 0){
-            payable(treasury).transfer(msg.value);
-            emit Donate(soulId, tx.origin, msg.value);
+
+    function burn(address account, uint256 id, uint256 value) public {
+        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
+            revert ERC1155MissingApprovalForAll(_msgSender(), account);
         }
-        // mint SBT
-        _mint(to, soulId, 1, "");
+
+        _burn(account, id, value);
     }
 
-    /// @notice burn SBT with soulID from target adddress.
-    function burn(address from, uint256 soulId) external whenNotPaused{
-        // check: the SBT with soulId is created
-        require(isCreated(soulId), "SoulId is not created yet");
-        // burn SBT
-        _burn(from, soulId, 1);
+    function burnBatch(address account, uint256[] memory ids, uint256[] memory values) public {
+        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
+            revert ERC1155MissingApprovalForAll(_msgSender(), account);
+        }
+
+        _burnBatch(account, ids, values);
     }
 
     /// @notice Returns whether an address has minter role.
