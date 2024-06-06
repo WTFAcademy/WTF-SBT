@@ -23,7 +23,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
     /// @notice This event is emitted when user donates during minting
     event Donate(uint256 indexed soulID, address indexed donator, uint256 amount);
     /// @notice This event is emitted when user recovers the SBTs
-    event Recover(address oldOwner, address newOwner, uint256[] soulIdList);
+    event Recover(address oldOwner, address newOwner, uint256[] soulIds);
 
 
     /* ============ Modifiers ============ */
