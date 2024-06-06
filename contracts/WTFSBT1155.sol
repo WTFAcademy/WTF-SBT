@@ -108,7 +108,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
     ///      The caller needs approve from the old owner.
     /// @param oldOwner The old owner address for SBT.
     /// @param newOwner The new owner address for SBT.
-    function recover(address oldOwner, address newOwner) external onlyOwner whenNotPaused {
+    function recover(address oldOwner, address newOwner) external onlyMinter whenNotPaused {
         uint256 tokenCount = latestUnusedTokenId;
         uint256[] memory soulIdList = new uint256[](tokenCount);
         uint256[] memory addressBalances = new uint256[](tokenCount);
