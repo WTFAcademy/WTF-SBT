@@ -23,7 +23,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
     /// @notice This event is emitted when user donates during minting
     event Donate(uint256 indexed soulID, address indexed donator, uint256 amount);
     /// @notice This event is emitted when user recovers the SBTs
-    event Recover(address oldOwner, address newOwner);
+    event Recover(address oldOwner, address newOwner, uint256[] soulIds);
 
 
     /* ============ Modifiers ============ */
@@ -108,29 +108,41 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
     ///      The caller needs approve from the old owner.
     /// @param oldOwner The old owner address for SBT.
     /// @param newOwner The new owner address for SBT.
-    function recover(address oldOwner, address newOwner) external onlyOwner whenNotPaused{
-        uint latestUnusedTokenId_ = latestUnusedTokenId;
-        // balance of oldOwner
-        uint256[] memory addressBalances = new uint256[](latestUnusedTokenId_);
-        // Created soul ID list
-        uint256[] memory soulIdList = new uint256[](latestUnusedTokenId_);
-        // loop over all created soul ID
-        for (uint256 i = 0; i < latestUnusedTokenId_; ++i) {
-            addressBalances[i] = balanceOf(oldOwner, i);
-            soulIdList[i] = i;
+    function recover(address oldOwner, address newOwner) external onlyMinter whenNotPaused {
+        uint256 tokenCount = latestUnusedTokenId;
+        uint256[] memory soulIdList = new uint256[](tokenCount);
+        uint256[] memory addressBalances = new uint256[](tokenCount);
+        uint256 count = 0;
+
+        // Collect balances and token IDs, and count non-zero balances
+        for (uint256 i = 0; i < tokenCount; ++i) {
+            uint256 balance = balanceOf(oldOwner, i);
+            if (balance > 0) {
+                addressBalances[count] = balance;
+                soulIdList[count] = i;
+                count++;
+            }
         }
-        // transfer all SBT from old owner address to new owner address.
+
+        // Resize the arrays to remove unused slots
+        assembly {
+            mstore(soulIdList, count)
+            mstore(addressBalances, count)
+        }
+
+        // Transfer all SBTs from old owner to new owner
         _safeBatchTransferFrom(oldOwner, newOwner, soulIdList, addressBalances, "");
-        
-        emit Recover(oldOwner, newOwner);
+
+        emit Recover(oldOwner, newOwner, soulIdList);
     }
+
 
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
         internal
         override
     {
         require(
-            (from == address(0) || to == address(0) || _msgSender() == owner()),
+            (from == address(0) || to == address(0) || _msgSender() == owner()) || isMinter(_msgSender()),
             "Soulbound: Transfer failed!"
         );
 
