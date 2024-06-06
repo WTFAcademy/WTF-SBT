@@ -133,7 +133,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
         // Transfer all SBTs from old owner to new owner
         _safeBatchTransferFrom(oldOwner, newOwner, soulIdList, addressBalances, "");
 
-        emit Recover(oldOwner, newOwner, soulIdList, addressBalances);
+        emit Recover(oldOwner, newOwner, soulIdList);
     }
 
 
