@@ -251,6 +251,14 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
         emit MinterRemoved(minter_);
     }
 
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
     /// @notice change treasury address.
     function transferTreasury(address treasury_) external onlyOwner whenNotPaused{
         address oldTreasury = treasury;
