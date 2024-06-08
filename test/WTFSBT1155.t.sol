@@ -15,8 +15,8 @@ contract WTFSBT1155Test is Test {
     function setUp() public {
         vm.startPrank(owner);
         sbt = new WTFSBT1155("Test SBT", "TestSBT", "https://api.wtf.academy/token", owner);
-        sbt.createSoul("test01", "test 01", 0, 0, 0);
-        sbt.createSoul("test02", "test 02", 10, block.timestamp, block.timestamp+100);
+        sbt.createSoul("test01", "test 01", 0, 0);
+        sbt.createSoul("test02", "test 02", block.timestamp, block.timestamp+100);
         sbt.addMinter(MINTER_ADDRESS);
         alice = address(1);
         vm.label(alice, "Alice");

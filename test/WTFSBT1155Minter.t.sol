@@ -3,7 +3,6 @@ pragma solidity ^0.8.4;
 
 import "forge-std/Test.sol";
 import "../contracts/WTFSBT1155Minter.sol";
-import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract WTFSBT1155MinterTest is Test {
 
