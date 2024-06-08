@@ -42,7 +42,6 @@ contract WTFSBT1155Minter is Ownable, Nonces{
     }
 
     /* ============ External Functions ============ */
-    
     /**
      * @dev mint token `soulId` to `account` if `signature` is valid. 
      * `msgHash` is concatenated by `soulId` and `account`.
@@ -70,8 +69,19 @@ contract WTFSBT1155Minter is Ownable, Nonces{
         emit SBTMinted(to, soulId, msg.value);
     }
 
+
     /**
-     * @dev change signer address. Only owner can call.
+     * @dev recover sbt to new address. only owner can call.
+     * @param oldOwner The old owner address for SBT.
+     * @param newOwner The new owner address for SBT.
+     */
+    function recover(address oldOwner, address newOwner) external onlyOwner {
+        wtfsbt.recover(oldOwner, newOwner);
+    }
+
+
+    /**
+     * @dev change signer address. only owner can call.
      * @param newSigner: address of new signer
      */
      function setSigner(address newSigner) external onlyOwner{

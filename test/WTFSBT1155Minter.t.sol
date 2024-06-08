@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../contracts/WTFSBT1155Minter.sol";
 
 contract WTFSBT1155MinterTest is Test {
 
+    using MessageHashUtils for bytes32;
     using ECDSA for bytes32;
 
     WTFSBT1155 public sbt;
@@ -22,8 +23,8 @@ contract WTFSBT1155MinterTest is Test {
 
         vm.startPrank(owner);
         sbt = new WTFSBT1155("Test SBT", "TestSBT", "https://api.wtf.academy/token", msg.sender);
-        sbt.createSoul("test01", "test 01", 0, 0, 0);
-        sbt.createSoul("test02", "test 02", 10, block.timestamp, block.timestamp+100);
+        sbt.createSoul("test01", "test 01", 0, 0);
+        sbt.createSoul("test02", "test 02", block.timestamp, block.timestamp+100);
 
         minter = new WTFSBT1155Minter(payable(sbt), owner);
         sbt.addMinter(address(minter));
@@ -54,13 +55,17 @@ contract WTFSBT1155MinterTest is Test {
 
     function testMinterMint() public {
         uint256 soulID_ = 0;
+        uint256 mintPrice_ = 0;
+        uint256 deadline_ = block.timestamp+100;
+        uint256 chainId_ = minter._cachedChainId();
+        uint256 nonce_ = 0;
         // ECDSA verify
-        bytes32 msgHash = keccak256(abi.encodePacked(alice, soulID_)).toEthSignedMessageHash();
+        bytes32 msgHash = keccak256(abi.encodePacked(alice, soulID_, mintPrice_, deadline_, chainId_, nonce_)).toEthSignedMessageHash();
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, msgHash);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.prank(alice);
-        minter.mint(alice, 0,signature);
+        minter.mint(alice, 0, mintPrice_, deadline_, signature);
         assertEq(sbt.balanceOf(alice, 0), 1);
     }
 

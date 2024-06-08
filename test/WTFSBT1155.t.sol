@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../contracts/WTFSBT1155.sol";
@@ -65,12 +65,12 @@ contract WTFSBT1155Test is Test {
     }
 
     function testRecover() public {
-        // only contract owner can transfer under the permision of the holder
+        // only contract minter can transfer under the permision of the holder
         vm.prank(MINTER_ADDRESS);
         sbt.mint(alice, 0);
         vm.prank(alice);
         sbt.setApprovalForAll(owner, true);
-        vm.prank(owner);
+        vm.prank(MINTER_ADDRESS);
         sbt.recover(alice, bob);
     }
 }
