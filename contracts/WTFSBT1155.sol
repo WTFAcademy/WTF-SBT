@@ -141,8 +141,9 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply{
         internal
         override
     {
+        // Ensure that the transfer is either minting, burning, or by an authorized address
         require(
-            (from == address(0) || to == address(0) || _msgSender() == owner()) || isMinter(_msgSender()),
+            from == address(0) || to == address(0) || _msgSender() == owner() || isMinter(_msgSender()),
             "Soulbound: Transfer failed!"
         );
 
