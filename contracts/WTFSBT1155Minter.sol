@@ -19,7 +19,7 @@ contract WTFSBT1155Minter is Ownable, Nonces {
      */
     event SignerChanged(address indexed oldSigner, address indexed newSigner);
     /**
-     * @notice This event is emitted when a new SBT is minted
+     * @dev This event is emitted when a new SBT is minted
      * @param to The address to which the SBT is minted
      * @param soulId The ID of the SBT
      * @param donation The donation amount sent during the mint
