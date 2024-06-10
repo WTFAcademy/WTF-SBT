@@ -285,6 +285,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
     /* ============ Minter Related Functions ============ */
     /**
      * @dev Mints a SBT with a given soul ID to a target address
+     * This function can only be called by minter.
      * @param to The address to mint the SBT to
      * @param soulId The ID of the Soul token
      */
