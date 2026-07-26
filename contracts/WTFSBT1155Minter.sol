@@ -112,8 +112,9 @@ contract WTFSBT1155Minter is Ownable, Nonces {
      * @param newSigner: address of new signer
      */
     function setSigner(address newSigner) external onlyOwner {
+        address oldSigner = signer;
         signer = newSigner;
-        emit SignerChanged(signer, newSigner);
+        emit SignerChanged(oldSigner, newSigner);
     }
 
     // withdraw eth
