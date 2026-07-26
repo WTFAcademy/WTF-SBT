@@ -32,17 +32,11 @@ contract Deploy is Script {
         address signer = vm.envAddress("SIGNER");
         string memory name_ = vm.envOr("SBT_NAME", string("WTF Certificates"));
         string memory symbol_ = vm.envOr("SBT_SYMBOL", string("WTFC"));
-        string memory baseURI = vm.envOr(
-            "SBT_BASE_URI",
-            string("https://api.wtf.academy/v1/sbt/token/")
-        );
+        string memory baseURI = vm.envOr("SBT_BASE_URI", string("https://api.wtf.academy/v1/sbt/token/"));
 
         vm.startBroadcast();
         WTFSBT1155 sbt = new WTFSBT1155(name_, symbol_, baseURI, treasury);
-        WTFSBT1155Minter minter = new WTFSBT1155Minter(
-            payable(address(sbt)),
-            signer
-        );
+        WTFSBT1155Minter minter = new WTFSBT1155Minter(payable(address(sbt)), signer);
         sbt.addMinter(address(minter));
         vm.stopBroadcast();
 

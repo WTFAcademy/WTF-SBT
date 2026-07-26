@@ -15,12 +15,7 @@ contract AirdropHarness is Airdrop {
     uint256 internal _chunk;
     string internal _map;
 
-    constructor(
-        address sbt_,
-        string memory file_,
-        uint256 chunk_,
-        string memory map_
-    ) {
+    constructor(address sbt_, string memory file_, uint256 chunk_, string memory map_) {
         _sbt = sbt_;
         _file = file_;
         _chunk = chunk_;
@@ -59,12 +54,7 @@ contract AirdropScriptTest is Test {
 
     function setUp() public {
         vm.startPrank(owner);
-        sbt = new WTFSBT1155(
-            "WTF Certificates",
-            "WTFC",
-            "https://api.wtf.academy/v1/sbt/token/",
-            owner
-        );
+        sbt = new WTFSBT1155("WTF Certificates", "WTFC", "https://api.wtf.academy/v1/sbt/token/", owner);
         // same order as Base: soul 0 then soul 1
         sbt.createSoul("base-soul-0", "migrated from Base", 0, 0);
         sbt.createSoul("base-soul-1", "migrated from Base", 0, 0);
@@ -142,12 +132,7 @@ contract AirdropScriptTest is Test {
 
     function testAirdropSingleChunk() public {
         // chunk size larger than the file: one batchMint call for everything
-        AirdropHarness airdrop = new AirdropHarness(
-            address(sbt),
-            FIXTURE,
-            1000,
-            ""
-        );
+        AirdropHarness airdrop = new AirdropHarness(address(sbt), FIXTURE, 1000, "");
         _addMinter(address(this));
         airdrop.run();
         assertEq(sbt.totalSupply(0), 3, "soul 0 supply");
@@ -161,12 +146,7 @@ contract AirdropScriptTest is Test {
         sbt.createSoul("bsc-soul-3", "remapped", 0, 0);
         vm.stopPrank();
 
-        AirdropHarness airdrop = new AirdropHarness(
-            address(sbt),
-            FIXTURE,
-            2,
-            '{"0":"2","1":"3"}'
-        );
+        AirdropHarness airdrop = new AirdropHarness(address(sbt), FIXTURE, 2, '{"0":"2","1":"3"}');
         _addMinter(address(this));
         airdrop.run();
 
@@ -182,12 +162,7 @@ contract AirdropScriptTest is Test {
         sbt.createSoul("bsc-soul-2", "remapped", 0, 0);
 
         // only Base soul 1 is remapped; soul 0 must pass through unchanged
-        AirdropHarness airdrop = new AirdropHarness(
-            address(sbt),
-            FIXTURE,
-            2,
-            '{"1":"2"}'
-        );
+        AirdropHarness airdrop = new AirdropHarness(address(sbt), FIXTURE, 2, '{"1":"2"}');
         _addMinter(address(this));
         airdrop.run();
 
@@ -198,12 +173,7 @@ contract AirdropScriptTest is Test {
 
     function testAirdropRevertsOnUncreatedSoulId() public {
         // map Base soul 1 to a soulId that does not exist on this chain
-        AirdropHarness airdrop = new AirdropHarness(
-            address(sbt),
-            FIXTURE,
-            2,
-            '{"1":"9"}'
-        );
+        AirdropHarness airdrop = new AirdropHarness(address(sbt), FIXTURE, 2, '{"1":"9"}');
         _addMinter(address(this));
         vm.expectRevert(
             bytes(
@@ -224,12 +194,7 @@ contract AirdropScriptTest is Test {
     }
 
     function testAirdropRevertsOnZeroChunkSize() public {
-        AirdropHarness airdrop = new AirdropHarness(
-            address(sbt),
-            FIXTURE,
-            0,
-            ""
-        );
+        AirdropHarness airdrop = new AirdropHarness(address(sbt), FIXTURE, 0, "");
         _addMinter(address(this));
         vm.expectRevert(bytes("CHUNK_SIZE must be > 0"));
         airdrop.run();

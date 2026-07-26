@@ -9,25 +9,14 @@ contract WTFSBT1155Test is Test {
 
     address internal alice;
     address internal bob;
-    address constant MINTER_ADDRESS =
-        0x25df6DA2f4e5C178DdFF45038378C0b08E0Bce54;
+    address constant MINTER_ADDRESS = 0x25df6DA2f4e5C178DdFF45038378C0b08E0Bce54;
     address owner = address(1234);
 
     function setUp() public {
         vm.startPrank(owner);
-        sbt = new WTFSBT1155(
-            "Test SBT",
-            "TestSBT",
-            "https://api.wtf.academy/token",
-            owner
-        );
+        sbt = new WTFSBT1155("Test SBT", "TestSBT", "https://api.wtf.academy/token", owner);
         sbt.createSoul("test01", "test 01", 0, 0);
-        sbt.createSoul(
-            "test02",
-            "test 02",
-            block.timestamp,
-            block.timestamp + 100
-        );
+        sbt.createSoul("test02", "test 02", block.timestamp, block.timestamp + 100);
         sbt.addMinter(MINTER_ADDRESS);
         alice = address(1);
         vm.label(alice, "Alice");
@@ -258,9 +247,7 @@ contract WTFSBT1155Test is Test {
 
         vm.deal(MINTER_ADDRESS, 1 ether);
         vm.prank(MINTER_ADDRESS);
-        (bool ok, ) = address(sbt).call{value: 1}(
-            abi.encodeWithSelector(sbt.batchMint.selector, to, soulIds)
-        );
+        (bool ok,) = address(sbt).call{value: 1}(abi.encodeWithSelector(sbt.batchMint.selector, to, soulIds));
         assertEq(ok, false, "batchMint should reject ETH");
     }
 

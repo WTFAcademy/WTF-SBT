@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "upgrade/**"
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  foundry:
+    name: build / test / fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # forge-std and openzeppelin-contracts are git submodules; without
+          # this the remappings in foundry.toml point at empty directories and
+          # every compile fails.
+          submodules: recursive
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: forge --version
+        run: forge --version
+
+      - name: forge build
+        run: forge build --sizes
+
+      - name: forge test
+        run: forge test -vvv
+
+      # Enforced: the whole tree was normalised in a dedicated `forge fmt`
+      # commit, so any drift from here on is a real diff worth failing on.
+      - name: forge fmt --check
+        run: forge fmt --check

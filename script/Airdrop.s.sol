@@ -70,10 +70,7 @@ contract Airdrop is Script {
         recipients = vm.parseJsonAddressArray(json, ".recipients");
         soulIds = _remapSoulIds(vm.parseJsonUintArray(json, ".soulIds"));
 
-        require(
-            recipients.length == soulIds.length,
-            "holders file: recipients/soulIds length mismatch"
-        );
+        require(recipients.length == soulIds.length, "holders file: recipients/soulIds length mismatch");
         require(recipients.length > 0, "holders file: no entries");
 
         console.log("SBT:            ", address(sbt));
@@ -127,11 +124,7 @@ contract Airdrop is Script {
             uint256 end = start + chunkSize;
             if (end > total) end = total;
 
-            (
-                address[] memory toChunk,
-                uint256[] memory idChunk,
-                uint256 pending
-            ) = _slice(start, end);
+            (address[] memory toChunk, uint256[] memory idChunk, uint256 pending) = _slice(start, end);
             alreadyHeld += (end - start) - pending;
 
             console.log(
@@ -164,10 +157,7 @@ contract Airdrop is Script {
     }
 
     /// @dev Copies entries [start, end) out and counts how many still need minting.
-    function _slice(
-        uint256 start,
-        uint256 end
-    )
+    function _slice(uint256 start, uint256 end)
         internal
         view
         returns (address[] memory to, uint256[] memory ids, uint256 pending)
@@ -208,9 +198,7 @@ contract Airdrop is Script {
      * @dev Applies the optional SOUL_ID_MAP env var to the exported soulIds.
      * The map is a flat JSON object of decimal-string old->new ids, e.g. {"0":"3","1":"4"}.
      */
-    function _remapSoulIds(
-        uint256[] memory ids
-    ) internal returns (uint256[] memory) {
+    function _remapSoulIds(uint256[] memory ids) internal returns (uint256[] memory) {
         string memory mapJson = _soulIdMapJson();
         if (bytes(mapJson).length == 0) {
             return ids;
@@ -222,17 +210,8 @@ contract Airdrop is Script {
         for (uint256 k = 0; k < keys.length; ++k) {
             from[k] = vm.parseUint(keys[k]);
             // values are decimal strings, e.g. {"0":"3"}
-            to[k] = vm.parseUint(
-                vm.parseJsonString(mapJson, string.concat(".", keys[k]))
-            );
-            console.log(
-                string.concat(
-                    "SOUL_ID_MAP: soulId ",
-                    vm.toString(from[k]),
-                    " -> ",
-                    vm.toString(to[k])
-                )
-            );
+            to[k] = vm.parseUint(vm.parseJsonString(mapJson, string.concat(".", keys[k])));
+            console.log(string.concat("SOUL_ID_MAP: soulId ", vm.toString(from[k]), " -> ", vm.toString(to[k])));
         }
 
         for (uint256 i = 0; i < ids.length; ++i) {

@@ -16,23 +16,12 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
     /// @notice This event is emitted when old minter address is removed
     event MinterRemoved(address indexed oldMinter);
     /// @notice This event is emitted when treasury address changes
-    event TreasuryTransferred(
-        address indexed oldTreasury,
-        address indexed newTreasury
-    );
+    event TreasuryTransferred(address indexed oldTreasury, address indexed newTreasury);
     /// @notice This event is to easily track which creator registered
     ///      which Soul tokens without having to store the mapping on-chain.
-    event CreatedSoul(
-        address indexed creator,
-        uint256 tokenId,
-        string soulName
-    );
+    event CreatedSoul(address indexed creator, uint256 tokenId, string soulName);
     /// @notice This event is emitted when user donates during minting
-    event Donate(
-        uint256 indexed soulID,
-        address indexed donator,
-        uint256 amount
-    );
+    event Donate(uint256 indexed soulID, address indexed donator, uint256 amount);
     /// @notice This event is emitted when user recovers the SBTs
     event Recover(address oldOwner, address newOwner, uint256[] soulIds);
     /// @notice This event is emitted after a batch mint (airdrop), with the
@@ -83,12 +72,10 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param baseURI_ The base URI for the metadata
      * @param treasury_ The treasury address
      */
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        string memory baseURI_,
-        address treasury_
-    ) ERC1155("") Ownable(msg.sender) {
+    constructor(string memory name_, string memory symbol_, string memory baseURI_, address treasury_)
+        ERC1155("")
+        Ownable(msg.sender)
+    {
         _baseURI = baseURI_;
         name = name_;
         symbol = symbol_;
@@ -139,10 +126,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param oldOwner The old owner address for SBT
      * @param newOwner The new owner address for SBT
      */
-    function recover(
-        address oldOwner,
-        address newOwner
-    ) external onlyMinter whenNotPaused {
+    function recover(address oldOwner, address newOwner) external onlyMinter whenNotPaused {
         uint256 tokenCount = latestUnusedTokenId;
         uint256[] memory soulIdList = new uint256[](tokenCount);
         uint256[] memory addressBalances = new uint256[](tokenCount);
@@ -165,13 +149,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
         }
 
         // Transfer all SBTs from old owner to new owner
-        _safeBatchTransferFrom(
-            oldOwner,
-            newOwner,
-            soulIdList,
-            addressBalances,
-            ""
-        );
+        _safeBatchTransferFrom(oldOwner, newOwner, soulIdList, addressBalances, "");
 
         emit Recover(oldOwner, newOwner, soulIdList);
     }
@@ -183,18 +161,10 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param ids The list of token IDs
      * @param values The list of token amounts
      */
-    function _update(
-        address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) internal override {
+    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override {
         // Ensure that the transfer is either minting, burning, or by an authorized address
         require(
-            from == address(0) ||
-                to == address(0) ||
-                _msgSender() == owner() ||
-                isMinter(_msgSender()),
+            from == address(0) || to == address(0) || _msgSender() == owner() || isMinter(_msgSender()),
             "Soulbound: Transfer failed!"
         );
 
@@ -207,23 +177,16 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param soulId The ID of the Soul token
      * @return The metadata URI for the Soul token
      */
-    function uri(
-        uint256 soulId
-    ) public view virtual override returns (string memory) {
+    function uri(uint256 soulId) public view virtual override returns (string memory) {
         require(isCreated(soulId), "SoulID not created");
-        return
-            bytes(_baseURI).length > 0
-                ? string(abi.encodePacked(_baseURI, soulId.toString()))
-                : "";
+        return bytes(_baseURI).length > 0 ? string(abi.encodePacked(_baseURI, soulId.toString())) : "";
     }
 
     /**
      * @dev Sets the SBT base URI
      * @param baseURI_ The new base URI
      */
-    function setbaseURI(
-        string memory baseURI_
-    ) external onlyOwner whenNotPaused {
+    function setbaseURI(string memory baseURI_) external onlyOwner whenNotPaused {
         _baseURI = baseURI_;
     }
 
@@ -242,9 +205,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param soulId The ID of the Soul token
      * @return The description of the Soul token
      */
-    function getSoulDescription(
-        uint256 soulId
-    ) external view returns (string memory) {
+    function getSoulDescription(uint256 soulId) external view returns (string memory) {
         require(isCreated(soulId), "SoulID not created");
         return (soulIdToSoulContainer[soulId].description);
     }
@@ -254,9 +215,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param soulId The ID of the Soul token
      * @return The registered timestamp of the Soul token
      */
-    function getSoulRegisteredTimestamp(
-        uint256 soulId
-    ) external view returns (uint256) {
+    function getSoulRegisteredTimestamp(uint256 soulId) external view returns (uint256) {
         require(isCreated(soulId), "SoulID not created");
         return (soulIdToSoulContainer[soulId].registeredTimestamp);
     }
@@ -266,9 +225,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param soulId The ID of the Soul token
      * @return The start timestamp of the Soul token
      */
-    function getSoulStartDateTimestamp(
-        uint256 soulId
-    ) external view returns (uint256) {
+    function getSoulStartDateTimestamp(uint256 soulId) external view returns (uint256) {
         require(isCreated(soulId), "SoulID not created");
         return (soulIdToSoulContainer[soulId].startDateTimestamp);
     }
@@ -278,9 +235,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param soulId The ID of the Soul token
      * @return The end timestamp of the Soul token
      */
-    function getSoulEndDateTimestamp(
-        uint256 soulId
-    ) external view returns (uint256) {
+    function getSoulEndDateTimestamp(uint256 soulId) external view returns (uint256) {
         require(isCreated(soulId), "SoulID not created");
         return (soulIdToSoulContainer[soulId].endDateTimestamp);
     }
@@ -296,16 +251,11 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
         // check: the SBT with soulId is created
         require(isCreated(soulId), "SoulId is not created yet");
         // check: mint has started
-        uint256 startDateTimestamp = soulIdToSoulContainer[soulId]
-            .startDateTimestamp;
+        uint256 startDateTimestamp = soulIdToSoulContainer[soulId].startDateTimestamp;
         require(block.timestamp >= startDateTimestamp, "Mint has not started");
         // check: mint has not ended
-        uint256 endDateTimestamp = soulIdToSoulContainer[soulId]
-            .endDateTimestamp;
-        require(
-            endDateTimestamp == 0 || block.timestamp < endDateTimestamp,
-            "Mint has ended"
-        );
+        uint256 endDateTimestamp = soulIdToSoulContainer[soulId].endDateTimestamp;
+        require(endDateTimestamp == 0 || block.timestamp < endDateTimestamp, "Mint has ended");
     }
 
     /**
@@ -314,10 +264,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param to The address to mint the SBT to
      * @param soulId The ID of the Soul token
      */
-    function mint(
-        address to,
-        uint256 soulId
-    ) external payable onlyMinter whenNotPaused {
+    function mint(address to, uint256 soulId) external payable onlyMinter whenNotPaused {
         // check: soul is created and the mint window is open
         _requireMintable(soulId);
         // donate if msg.value > 0
@@ -339,10 +286,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param to The list of addresses to mint the SBTs to
      * @param soulIds The list of Soul token IDs, one per recipient
      */
-    function batchMint(
-        address[] calldata to,
-        uint256[] calldata soulIds
-    ) external onlyMinter whenNotPaused {
+    function batchMint(address[] calldata to, uint256[] calldata soulIds) external onlyMinter whenNotPaused {
         require(to.length == soulIds.length, "Length mismatch");
         require(to.length > 0, "Empty batch");
 
@@ -371,9 +315,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param value The amount of tokens to burn
      */
     function burn(address account, uint256 id, uint256 value) public {
-        if (
-            account != _msgSender() && !isApprovedForAll(account, _msgSender())
-        ) {
+        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
             revert ERC1155MissingApprovalForAll(_msgSender(), account);
         }
 
@@ -386,14 +328,8 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @param ids The list of token IDs to burn
      * @param values The list of amounts of tokens to burn
      */
-    function burnBatch(
-        address account,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) public {
-        if (
-            account != _msgSender() && !isApprovedForAll(account, _msgSender())
-        ) {
+    function burnBatch(address account, uint256[] memory ids, uint256[] memory values) public {
+        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
             revert ERC1155MissingApprovalForAll(_msgSender(), account);
         }
 
@@ -448,9 +384,7 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
      * @dev Changes the treasury address
      * @param treasury_ The new treasury address
      */
-    function transferTreasury(
-        address treasury_
-    ) external onlyOwner whenNotPaused {
+    function transferTreasury(address treasury_) external onlyOwner whenNotPaused {
         address oldTreasury = treasury;
         treasury = treasury_;
         emit TreasuryTransferred(oldTreasury, treasury);
