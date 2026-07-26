@@ -5,6 +5,16 @@ libs = ['lib', 'node_modules']
 evm_version = "cancun"
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts",
+    # Pin forge-std to our own submodule; without this it resolves to the
+    # older copy nested inside the openzeppelin-contracts submodule.
+    "forge-std/=lib/forge-std/src/",
+    "ds-test/=lib/forge-std/lib/ds-test/src/",
 ]
+# script/Airdrop.s.sol reads the exported Base holder set via vm.readFile
+fs_permissions = [{ access = "read", path = "./airdrop" }]
+
+[rpc_endpoints]
+bsc = "https://bsc-dataseed.bnbchain.org"
+bsc_testnet = "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

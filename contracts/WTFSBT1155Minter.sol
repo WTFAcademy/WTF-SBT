@@ -15,11 +15,7 @@ contract WTFSBT1155Minter is Ownable, Nonces {
     /// @notice This event is emitted when signer address is changed
     event SignerChanged(address indexed oldSigner, address indexed newSigner);
     /// @notice This event is emitted when new SBT is minted
-    event SBTMinted(
-        address indexed to,
-        uint256 indexed soulId,
-        uint256 donation
-    );
+    event SBTMinted(address indexed to, uint256 indexed soulId, uint256 donation);
 
     /* ============ State Variables ============ */
     address public signer; // singer address
@@ -46,9 +42,7 @@ contract WTFSBT1155Minter is Ownable, Nonces {
         bytes memory signature
     ) public view returns (bool) {
         // 生成用于签名的消息
-        bytes32 message = keccak256(
-            abi.encodePacked(to, soulId, mintPrice, deadline, chainId, nonces)
-        );
+        bytes32 message = keccak256(abi.encodePacked(to, soulId, mintPrice, deadline, chainId, nonces));
         bytes32 ethSignedMessage = message.toEthSignedMessageHash();
 
         // 恢复签名者地址
@@ -65,13 +59,10 @@ contract WTFSBT1155Minter is Ownable, Nonces {
      * @param deadline: token mint deadline
      * @param signature: signature by signer
      */
-    function mint(
-        address to,
-        uint256 soulId,
-        uint256 mintPrice,
-        uint256 deadline,
-        bytes memory signature
-    ) external payable {
+    function mint(address to, uint256 soulId, uint256 mintPrice, uint256 deadline, bytes memory signature)
+        external
+        payable
+    {
         // check: the account has not minted the SBT with soulId yet
         require(wtfsbt.balanceOf(to, soulId) == 0, "Already minted!");
         // check: donation is higher than mint price
@@ -80,15 +71,7 @@ contract WTFSBT1155Minter is Ownable, Nonces {
         require(deadline >= block.timestamp, "Expired signature");
         // check: signature is valid
         require(
-            verifySignature(
-                to,
-                soulId,
-                mintPrice,
-                deadline,
-                _cachedChainId,
-                _useNonce(to),
-                signature
-            ),
+            verifySignature(to, soulId, mintPrice, deadline, _cachedChainId, _useNonce(to), signature),
             "Invalid signature"
         );
 
@@ -112,8 +95,9 @@ contract WTFSBT1155Minter is Ownable, Nonces {
      * @param newSigner: address of new signer
      */
     function setSigner(address newSigner) external onlyOwner {
+        address oldSigner = signer;
         signer = newSigner;
-        emit SignerChanged(signer, newSigner);
+        emit SignerChanged(oldSigner, newSigner);
     }
 
     // withdraw eth
