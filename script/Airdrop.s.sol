@@ -4,15 +4,6 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../contracts/WTFSBT1155.sol";
 
-/// @dev The vendored forge-std Vm.sol predates `parseJsonKeys`, but the cheatcode exists in
-/// the installed foundry (dispatch is by selector), so declare just what we need.
-interface IVmJsonKeys {
-    function parseJsonKeys(
-        string calldata json,
-        string calldata key
-    ) external returns (string[] memory keys);
-}
-
 /**
  * @notice Re-issues ("补铸") the legacy Base certificates on BNB Chain by calling
  *         WTFSBT1155.batchMint in chunks that stay well under the block gas limit.
@@ -85,10 +76,10 @@ contract Airdrop is Script {
         );
         require(recipients.length > 0, "holders file: no entries");
 
-        console2.log("SBT:            ", address(sbt));
-        console2.log("holders file:   ", holdersFile);
-        console2.log("chainid:        ", block.chainid);
-        console2.log("entries:        ", recipients.length);
+        console.log("SBT:            ", address(sbt));
+        console.log("holders file:   ", holdersFile);
+        console.log("chainid:        ", block.chainid);
+        console.log("entries:        ", recipients.length);
     }
 
     /// @dev Fails before any transaction is sent if the operator setup is wrong.
@@ -115,9 +106,9 @@ contract Airdrop is Script {
             );
         }
 
-        console2.log("sender:         ", msg.sender);
-        console2.log("chunk size:     ", chunkSize);
-        console2.log("chunks:         ", _chunkCount(chunkSize));
+        console.log("sender:         ", msg.sender);
+        console.log("chunk size:     ", chunkSize);
+        console.log("chunks:         ", _chunkCount(chunkSize));
     }
 
     function _chunkCount(uint256 chunkSize) internal view returns (uint256) {
@@ -143,7 +134,7 @@ contract Airdrop is Script {
             ) = _slice(start, end);
             alreadyHeld += (end - start) - pending;
 
-            console2.log(
+            console.log(
                 string.concat(
                     "chunk ",
                     vm.toString(c + 1),
@@ -158,7 +149,7 @@ contract Airdrop is Script {
             );
 
             if (pending == 0) {
-                console2.log("  -> all already hold their soul, skipping chunk");
+                console.log("  -> all already hold their soul, skipping chunk");
                 continue;
             }
             // batchMint itself skips already-holders, so sending the full chunk is safe.
@@ -166,10 +157,10 @@ contract Airdrop is Script {
         }
         vm.stopBroadcast();
 
-        console2.log("---------------------------------");
-        console2.log("total entries:  ", total);
-        console2.log("already held:   ", alreadyHeld);
-        console2.log("newly minted:   ", total - alreadyHeld);
+        console.log("---------------------------------");
+        console.log("total entries:  ", total);
+        console.log("already held:   ", alreadyHeld);
+        console.log("newly minted:   ", total - alreadyHeld);
     }
 
     /// @dev Copies entries [start, end) out and counts how many still need minting.
@@ -225,10 +216,7 @@ contract Airdrop is Script {
             return ids;
         }
 
-        string[] memory keys = IVmJsonKeys(address(vm)).parseJsonKeys(
-            mapJson,
-            "$"
-        );
+        string[] memory keys = vm.parseJsonKeys(mapJson, "$");
         uint256[] memory from = new uint256[](keys.length);
         uint256[] memory to = new uint256[](keys.length);
         for (uint256 k = 0; k < keys.length; ++k) {
@@ -237,7 +225,7 @@ contract Airdrop is Script {
             to[k] = vm.parseUint(
                 vm.parseJsonString(mapJson, string.concat(".", keys[k]))
             );
-            console2.log(
+            console.log(
                 string.concat(
                     "SOUL_ID_MAP: soulId ",
                     vm.toString(from[k]),
