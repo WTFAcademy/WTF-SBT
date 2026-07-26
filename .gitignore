@@ -12,3 +12,6 @@ node_modules
 
 # Dotenv file
 .env
+
+# Cached Base logs from script/export-base-holders.sh
+airdrop/.cache/

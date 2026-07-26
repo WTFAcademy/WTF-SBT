@@ -35,6 +35,9 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
     );
     /// @notice This event is emitted when user recovers the SBTs
     event Recover(address oldOwner, address newOwner, uint256[] soulIds);
+    /// @notice This event is emitted after a batch mint (airdrop), with the
+    ///      number of SBTs actually minted (already-holders are skipped).
+    event BatchMinted(uint256 count);
 
     /* ============ Modifiers ============ */
     /// @notice Only minter modifier
@@ -284,15 +287,12 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
 
     /* ============ Minter Related Functions ============ */
     /**
-     * @dev Mints a SBT with a given soul ID to a target address
-     * This function can only be called by minter.
-     * @param to The address to mint the SBT to
+     * @dev Shared validation for `mint` and `batchMint`: the soul must exist and
+     * its mint window must be open. Revert strings are part of the public API
+     * (the frontend maps them to user-facing messages) — do not change them.
      * @param soulId The ID of the Soul token
      */
-    function mint(
-        address to,
-        uint256 soulId
-    ) external payable onlyMinter whenNotPaused {
+    function _requireMintable(uint256 soulId) internal view {
         // check: the SBT with soulId is created
         require(isCreated(soulId), "SoulId is not created yet");
         // check: mint has started
@@ -306,6 +306,20 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
             endDateTimestamp == 0 || block.timestamp < endDateTimestamp,
             "Mint has ended"
         );
+    }
+
+    /**
+     * @dev Mints a SBT with a given soul ID to a target address
+     * This function can only be called by minter.
+     * @param to The address to mint the SBT to
+     * @param soulId The ID of the Soul token
+     */
+    function mint(
+        address to,
+        uint256 soulId
+    ) external payable onlyMinter whenNotPaused {
+        // check: soul is created and the mint window is open
+        _requireMintable(soulId);
         // donate if msg.value > 0
         if (msg.value > 0) {
             payable(treasury).transfer(msg.value);
@@ -313,6 +327,41 @@ contract WTFSBT1155 is Ownable, Pausable, ERC1155Supply {
         }
         // mint SBT
         _mint(to, soulId, 1, "");
+    }
+
+    /**
+     * @dev Batch mints one SBT of `soulIds[i]` to `to[i]` for every index.
+     * Intended for airdrops / re-issuing certificates migrated from another chain,
+     * so it is NOT payable (no donation, no treasury transfer path).
+     * Recipients that already hold the soul are silently skipped, which makes a
+     * re-run of a partially-completed airdrop idempotent.
+     * This function can only be called by minter.
+     * @param to The list of addresses to mint the SBTs to
+     * @param soulIds The list of Soul token IDs, one per recipient
+     */
+    function batchMint(
+        address[] calldata to,
+        uint256[] calldata soulIds
+    ) external onlyMinter whenNotPaused {
+        require(to.length == soulIds.length, "Length mismatch");
+        require(to.length > 0, "Empty batch");
+
+        uint256 minted = 0;
+        for (uint256 i = 0; i < to.length; ++i) {
+            uint256 soulId = soulIds[i];
+            // check: soul is created and the mint window is open
+            _requireMintable(soulId);
+            // skip: recipient already holds this soul (idempotent re-run)
+            if (balanceOf(to[i], soulId) > 0) {
+                continue;
+            }
+            // ERC1155 `_mintBatch` mints many ids to ONE address, so it cannot be
+            // used here: every entry may have a different recipient.
+            _mint(to[i], soulId, 1, "");
+            ++minted;
+        }
+
+        emit BatchMinted(minted);
     }
 
     /**

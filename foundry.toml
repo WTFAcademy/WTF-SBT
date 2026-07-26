@@ -6,6 +6,8 @@ evm_version = "cancun"
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts",
 ]
+# script/Airdrop.s.sol reads the exported Base holder set via vm.readFile
+fs_permissions = [{ access = "read", path = "./airdrop" }]
 
 [rpc_endpoints]
 bsc = "https://bsc-dataseed.bnbchain.org"
